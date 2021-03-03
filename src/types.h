@@ -19,25 +19,27 @@ limitations under the License.
 
 #include <cstdint>
 
-namespace sgm {
-
-namespace cl
+namespace sgm
 {
 
-using feature_type = uint32_t;
-using cost_type = uint8_t;
-using cost_sum_type = uint16_t;
-using output_type = uint16_t;
+    namespace cl
+    {
 
-/**
+        using feature_type = uint32_t;
+        using cost_type = uint8_t;
+        using cost_sum_type = uint16_t;
+        using output_type = uint16_t;
+
+        /**
  Indicates number of scanlines which will be used.
 */
-enum class PathType {
-    SCAN_4PATH, //>! Horizontal and vertical paths.
-    SCAN_8PATH  //>! Horizontal, vertical and oblique paths.
-};
+        enum class PathType
+        {
+            SCAN_4PATH, //>! Horizontal and vertical paths.
+            SCAN_8PATH  //>! Horizontal, vertical and oblique paths.
+        };
 
-}
+    }
 }
 
 #endif
