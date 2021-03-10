@@ -10,6 +10,7 @@ set(CL_TARGET_OPENCL_VERSION 120 CACHE STRING "OpenCL target version")
 message(STATUS "OpenCL target verison: ${CL_TARGET_OPENCL_VERSION}")
 
 add_subdirectory(src)
+add_subdirectory(camera)
 
 find_package(OpenCL REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -20,6 +21,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS} ${OpenCL_
 
 add_executable(stereo_sgm_opencl ${SOURCES})
 
-target_link_libraries(stereo_sgm_opencl libsgm_ocl ${OpenCL_LIBRARIES} ${OpenCV_LIBS} pthread udev v4l2)
+target_link_libraries(stereo_sgm_opencl libsgm_ocl ocams_camera ${OpenCL_LIBRARIES} ${OpenCV_LIBS})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

@@ -9,7 +9,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "withrobot_camera.hpp"
-#include "withrobot_imu_parser.hpp"
 
 struct StereoCameraData
 {

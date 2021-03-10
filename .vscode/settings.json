@@ -1,5 +1,7 @@
 {
     "files.associations": {
+        "\"*.cu\"": "\"cpp\"",
+        "\"*.cuh\"": "\"cpp\"",
         "iosfwd": "cpp",
         "fstream": "cpp",
         "cctype": "cpp",
@@ -66,6 +68,7 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "*.inc": "cpp"
     }
 }
