@@ -25,8 +25,8 @@ struct StereoCameraConfig
     int width = 1280;
     int height = 960;
     int fps = 30;
-    int exposure = 150;
-    int gain = 100;
+    int exposure = 250;
+    int gain = 150;
     int white_balance_blue = 180;
     int white_balance_red = 150;
     bool ae = false;

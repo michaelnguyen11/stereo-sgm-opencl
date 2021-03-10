@@ -17,42 +17,35 @@ limitations under the License.
 #pragma once
 #include <memory>
 #include <cstdint>
-#include "libsgm_ocl.h"
 #include "device_buffer.h"
+#include "common.h"
 
-namespace sgm
+namespace sgmcl
 {
-    namespace cl
+
+    template <size_t MAX_DISPARITY>
+    class SemiGlobalMatching
     {
+    private:
+        class Impl;
+        std::unique_ptr<Impl> m_impl;
 
-        template <typename input_type, size_t MAX_DISPARITY>
-        class SemiGlobalMatching
-        {
-        public:
-            using output_type = sgm::cl::output_type;
+    public:
+        SemiGlobalMatching(cl_context context, cl_device_id device);
+        ~SemiGlobalMatching();
 
-        private:
-            class Impl;
-            std::unique_ptr<Impl> m_impl;
-
-        public:
-            SemiGlobalMatching(cl_context context, cl_device_id device);
-            ~SemiGlobalMatching();
-
-            void enqueue(
-                DeviceBuffer<output_type> &dest_left,
-                DeviceBuffer<output_type> &dest_right,
-                const DeviceBuffer<input_type> &src_left,
-                const DeviceBuffer<input_type> &src_right,
-                DeviceBuffer<feature_type> &feature_buffer_left,
-                DeviceBuffer<feature_type> &feature_buffer_right,
-                int width,
-                int height,
-                int src_pitch,
-                int dst_pitch,
-                const Parameters &param,
-                cl_command_queue stream);
-        };
-
-    }
-}
+        void enqueue(
+            DeviceBuffer<uint16_t> &dest_left,
+            DeviceBuffer<uint16_t> &dest_right,
+            const DeviceBuffer<uint8_t> &src_left,
+            const DeviceBuffer<uint8_t> &src_right,
+            DeviceBuffer<uint32_t> &feature_buffer_left,
+            DeviceBuffer<uint32_t> &feature_buffer_right,
+            int width,
+            int height,
+            int src_pitch,
+            int dst_pitch,
+            const Parameters &param,
+            cl_command_queue stream);
+    };
+} // namespace sgmcl

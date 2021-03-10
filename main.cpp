@@ -48,9 +48,9 @@ static cv::CommandLineParser getConfig(int argc, char **argv)
                          "{ fps            | 30                 | (int) Frame rate }"
                          "{ width          | 1280               | (int) Image width }"
                          "{ height         | 720                | (int) Image height }"
-                         "{ max_disparity  | 128                | (int) Maximum disparity }"
+                         "{ max_disparity  | 256                | (int) Maximum disparity }"
                          "{ subpixel       | true               | Compute subpixel accuracy }"
-                         "{ num_path       | 4                  | (int) Num path to optimize, 4 or 8 }";
+                         "{ num_path       | 8                  | (int) Num path to optimize, 4 or 8 }";
 
     cv::CommandLineParser config(argc, argv, params);
     if (config.get<bool>("help"))
@@ -118,9 +118,6 @@ int main(int argc, char *argv[])
     cv::initUndistortRectifyMap(K_L, D_L, Rect_L, Proj_L, cv::Size(camConfig.width, camConfig.height), CV_32FC1, map11, map12);
     cv::initUndistortRectifyMap(K_R, D_R, Rect_R, Proj_R, cv::Size(camConfig.width, camConfig.height), CV_32FC1, map21, map22);
 
-    // OpenCL Configure
-    int disp_size = config.get<int>("max_disparity");
-
     cl_context cl_ctx;
     cl_device_id cl_device;
     int platform_idx = 0;
@@ -129,30 +126,29 @@ int main(int argc, char *argv[])
     std::cout << "cl device : " << cl_device << std::endl;
     cl_command_queue cl_queue = clCreateCommandQueue(cl_ctx, cl_device, 0, nullptr);
 
-    sgm::cl::Parameters params;
-    int input_depth = 8;
-    params.subpixel = config.get<bool>("subpixel");
-    const int output_depth = (disp_size == 256 || params.subpixel) ? 16 : 8;
-    params.path_type = config.get<int>("num_path") == 8 ? sgm::cl::PathType::SCAN_8PATH : sgm::cl::PathType::SCAN_4PATH;
+    sgmcl::Parameters params;
+    int disp_size = 256;
+    int num_paths = 4;
+    params.subpixel = true;
+
+    params.path_type = num_paths == 8 ? sgmcl::PathType::SCAN_8PATH : sgmcl::PathType::SCAN_4PATH;
     params.uniqueness = 0.95f;
 
-    sgm::cl::StereoSGM<uint8_t> ssgm(camConfig.width,
-                                     camConfig.height,
-                                     disp_size,
-                                     output_depth,
-                                     cl_ctx,
-                                     cl_device,
-                                     params);
+    sgmcl::StereoSGM ssgm(camConfig.width,
+                            camConfig.height,
+                            disp_size,
+                            cl_ctx,
+                            cl_device,
+                            params);
 
     bool should_close = false;
-    int disp_type = output_depth == 8 ? CV_8UC1 : CV_16UC1;
 
-    cv::Mat disp(camConfig.height, camConfig.width, disp_type);
+    cv::Mat disp(camConfig.height, camConfig.width, CV_16UC1);
     cv::Mat disp_color, disp_8u;
     cl_mem d_left, d_right, d_disp;
     d_left = clCreateBuffer(cl_ctx, CL_MEM_READ_WRITE, camConfig.width * camConfig.height, nullptr, nullptr);
     d_right = clCreateBuffer(cl_ctx, CL_MEM_READ_WRITE, camConfig.width * camConfig.height, nullptr, nullptr);
-    d_disp = clCreateBuffer(cl_ctx, CL_MEM_READ_WRITE, camConfig.width * camConfig.height * output_depth / 8, nullptr, nullptr);
+    d_disp = clCreateBuffer(cl_ctx, CL_MEM_READ_WRITE, camConfig.width * camConfig.height * 2, nullptr, nullptr);
 
     while (is_streaming)
     {
@@ -179,18 +175,20 @@ int main(int argc, char *argv[])
             //ssgm.execute(left.data, right.data, reinterpret_cast<uint16_t*>(disp.data));
             ssgm.execute(d_left, d_right, d_disp);
             std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t);
-            clEnqueueReadBuffer(cl_queue, d_disp, true, 0, camConfig.width * camConfig.height * output_depth / 8, disp.data, 0, nullptr, nullptr);
+            clEnqueueReadBuffer(cl_queue, d_disp, true, 0, camConfig.width * camConfig.height * 2, disp.data, 0, nullptr, nullptr);
 
             cv::Mat disparity_8u, disparity_color;
             disp.convertTo(disparity_8u, CV_8U, 255. / (disp_size * (params.subpixel ? 16 : 1)));
             cv::applyColorMap(disparity_8u, disparity_color, cv::COLORMAP_JET);
-            const int invalid_disp = output_depth == 8
-                                         ? static_cast<uint8_t>(ssgm.get_invalid_disparity())
-                                         : static_cast<uint16_t>(ssgm.get_invalid_disparity());
+            const int invalid_disp = static_cast<uint16_t>(ssgm.get_invalid_disparity());
+
             disparity_color.setTo(cv::Scalar(0, 0, 0), disp == invalid_disp);
             const int64_t fps = 1000 / dur.count();
             cv::putText(disparity_color, "sgm execution time: " + std::to_string(dur.count()) + "[msec] " + std::to_string(fps) + "[FPS]",
                         cv::Point(50, 50), 2, 0.75, cv::Scalar(255, 255, 255));
+
+            cv::imshow("original", frame_0);
+            cv::waitKey(1);
 
             cv::imshow("disp", disparity_color);
             cv::waitKey(1);

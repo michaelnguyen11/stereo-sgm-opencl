@@ -1,6 +1,5 @@
 // pixel and feature type defs for example
-//#define pixel_type uint8_t
-@pixel_type@
+#define pixel_type uint8_t
 // numeric types
 #define uint32_t uint
 #define uint16_t ushort

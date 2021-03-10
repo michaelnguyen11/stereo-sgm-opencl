@@ -1,7 +1,7 @@
 
 #define INVALID_DISP ((uint16_t)(-1))
 #define DST_T uint16_t
-@SRC_T@
+#define SRC_T uint8_t
 @SUBPIXEL_SHIFT@
 
 kernel void check_consistency_kernel(global DST_T* d_leftDisp,
