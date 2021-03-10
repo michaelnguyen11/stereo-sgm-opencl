@@ -1,6 +1,4 @@
 #include "sgm_details.h"
-#include <regex>
-#include <fstream>
 
 namespace sgmcl
 {
@@ -8,6 +6,7 @@ namespace sgmcl
         : m_cl_context(ctx), m_cl_device_id(device)
     {
     }
+
     SGMDetails::~SGMDetails()
     {
         if (m_kernel_check_consistency)

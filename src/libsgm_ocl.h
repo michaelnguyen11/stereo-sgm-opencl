@@ -1,13 +1,65 @@
-#pragma once
+#include <vector>
+#include <assert.h>
+#include <fstream>
+#include <iostream>
+#include <memory>
+
 #include <CL/cl.h>
-#include <inttypes.h>
 
 #include "common.h"
-#include <memory>
+#include "cl_utilities.h"
+
+#include "census_transform.h"
+#include "path_aggregation.h"
+#include "winner_takes_all.h"
+#include "sgm_details.h"
 
 namespace sgmcl
 {
-    struct CudaStereoSGMResources;
+    class SemiGlobalMatchingBase
+    {
+    public:
+        virtual void execute(DeviceBuffer<uint16_t> &dest_left,
+                             DeviceBuffer<uint16_t> &dest_right,
+                             const DeviceBuffer<uint8_t> &src_left,
+                             const DeviceBuffer<uint8_t> &src_right,
+                             DeviceBuffer<uint32_t> &feature_buffer_left,
+                             DeviceBuffer<uint32_t> &feature_buffer_right,
+                             int width,
+                             int height,
+                             int src_pitch,
+                             int dst_pitch,
+                             const Parameters &param,
+                             cl_command_queue queue) = 0;
+
+        virtual ~SemiGlobalMatchingBase() {}
+    };
+
+    template <size_t MAX_DISPARITY>
+    class SemiGlobalMatching : public SemiGlobalMatchingBase
+    {
+    public:
+        SemiGlobalMatching(cl_context ctx, cl_device_id device);
+        virtual ~SemiGlobalMatching() {}
+
+        void execute(DeviceBuffer<uint16_t> &dest_left,
+                     DeviceBuffer<uint16_t> &dest_right,
+                     const DeviceBuffer<uint8_t> &src_left,
+                     const DeviceBuffer<uint8_t> &src_right,
+                     DeviceBuffer<uint32_t> &feature_buffer_left,
+                     DeviceBuffer<uint32_t> &feature_buffer_right,
+                     int width,
+                     int height,
+                     int src_pitch,
+                     int dst_pitch,
+                     const Parameters &param,
+                     cl_command_queue queue) override;
+
+    private:
+        CensusTransform m_census;
+        PathAggregation<MAX_DISPARITY> m_path_aggregation;
+        WinnerTakesAll<MAX_DISPARITY> m_winner_takes_all;
+    };
 
     class StereoSGM
     {
@@ -54,17 +106,26 @@ namespace sgmcl
         StereoSGM(const StereoSGM &) = delete;
         StereoSGM &operator=(const StereoSGM &) = delete;
 
-        std::unique_ptr<CudaStereoSGMResources> m_cu_res;
-
-        int m_width = -1;
-        int m_height = -1;
-        int m_max_disparity = -1;
+        int m_width;
+        int m_height;
 
         Parameters m_params;
 
-        //cl context info
         cl_context m_cl_ctx;
         cl_device_id m_cl_device;
         cl_command_queue m_cl_cmd_queue;
+
+        std::unique_ptr<SemiGlobalMatchingBase> sgm_engine;
+        SGMDetails sgm_details;
+
+        DeviceBuffer<uint32_t> d_feature_buffer_left;
+        DeviceBuffer<uint32_t> d_feature_buffer_right;
+        DeviceBuffer<uint8_t> d_src_left;
+        DeviceBuffer<uint8_t> d_src_right;
+        DeviceBuffer<uint16_t> d_left_disp;
+        DeviceBuffer<uint16_t> d_right_disp;
+        DeviceBuffer<uint16_t> d_tmp_left_disp;
+        DeviceBuffer<uint16_t> d_tmp_right_disp;
+        DeviceBuffer<uint8_t> d_u8_out_disp;
     };
 } // namespace sgmcl

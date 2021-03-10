@@ -14,12 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#pragma once
-#include "device_buffer.h"
 #include "common.h"
-#include "device_kernel.h"
-#include <regex>
-#include <vector>
 
 namespace sgmcl
 {

@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 Copyright 2016 Fixstars Corporation
 
@@ -17,8 +15,6 @@ limitations under the License.
 */
 
 #include "common.h"
-#include "device_buffer.h"
-#include "device_kernel.h"
 
 namespace sgmcl
 {

@@ -18,6 +18,11 @@ limitations under the License.
 #define SGM_TYPES_HPP
 
 #include <cstdint>
+#include <regex>
+#include <vector>
+#include <fstream>
+
+#include "cl_utilities.h"
 
 namespace sgmcl
 {

@@ -129,17 +129,17 @@ int main(int argc, char *argv[])
     sgmcl::Parameters params;
     int disp_size = 256;
     int num_paths = 4;
-    params.subpixel = true;
+    params.subpixel = false;
 
     params.path_type = num_paths == 8 ? sgmcl::PathType::SCAN_8PATH : sgmcl::PathType::SCAN_4PATH;
     params.uniqueness = 0.95f;
 
     sgmcl::StereoSGM ssgm(camConfig.width,
-                            camConfig.height,
-                            disp_size,
-                            cl_ctx,
-                            cl_device,
-                            params);
+                          camConfig.height,
+                          disp_size,
+                          cl_ctx,
+                          cl_device,
+                          params);
 
     bool should_close = false;
 
@@ -191,7 +191,10 @@ int main(int argc, char *argv[])
             cv::waitKey(1);
 
             cv::imshow("disp", disparity_color);
-            cv::waitKey(1);
+            // Press  ESC on keyboard to exit
+            char c = (char)cv::waitKey(25);
+            if (c == 27)
+                break;
         }
     }
 

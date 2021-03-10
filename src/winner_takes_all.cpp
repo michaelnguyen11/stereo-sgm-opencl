@@ -1,9 +1,4 @@
 #include "winner_takes_all.h"
-#include <regex>
-#include <fstream>
-
-//for debugging
-#include <opencv2/opencv.hpp>
 
 namespace sgmcl
 {

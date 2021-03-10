@@ -1,7 +1,4 @@
 #include "path_aggregation.h"
-//debugging
-#include <opencv2/opencv.hpp>
-#include <fstream>
 
 namespace sgmcl
 {

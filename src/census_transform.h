@@ -1,10 +1,4 @@
-#pragma once
 #include "common.h"
-#include "device_buffer.h"
-#include "device_kernel.h"
-#include <regex>
-
-#include <fstream>
 
 namespace sgmcl
 {
